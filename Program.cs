@@ -19,13 +19,31 @@ if (app.Environment.IsDevelopment())
 app.Use(async (context, next) =>
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Request Host: {Host}", context.Request.Host);
-    logger.LogInformation("My Middleware - Before");
+    logger.LogInformation("ClientName HttpHeader in Middleware 1: {ClientName}", context.Request.Headers["ClientName"].FirstOrDefault() ?? "");
+    logger.LogInformation("Add a ClientName HttpHeader in Middleware 1");
+
+    context.Request.Headers.TryAdd("ClientName", "Ubuntu");
+
+    logger.LogInformation("My Middleware 1 - Before");
 
     await next(context);
 
-    logger.LogInformation("My Middleware - After");
-    logger.LogInformation("Response StatusCode: {StatusCode}", context.Response.StatusCode);
+    logger.LogInformation("My Middleware 1 - After");
+    logger.LogInformation("Response StatusCode in Middleware 1: {StatusCode}", context.Response.StatusCode);
+});
+
+app.Use(async (context, next) =>
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("ClientName HttpHeader in Middleware 2: {ClientName}", context.Request.Headers["ClientName"].FirstOrDefault());
+
+    logger.LogInformation("My Middleware 2 - Before");
+
+    context.Response.StatusCode = StatusCodes.Status202Accepted;
+    await next(context);
+
+    logger.LogInformation("My Middleware 2 - After");
+    logger.LogInformation("Response StatusCode in Middleware 2: {StatusCode}", context.Response.StatusCode);
 });
 
 app.UseHttpsRedirection();
