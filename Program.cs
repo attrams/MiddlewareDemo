@@ -16,6 +16,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.Run(async context =>
+{
+    await context.Response.WriteAsync("Hello world!");
+});
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
