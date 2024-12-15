@@ -16,9 +16,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.Run(async context =>
+app.Use(async (context, next) =>
 {
-    await context.Response.WriteAsync("Hello world!");
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Request Host: {Host}", context.Request.Host);
+    logger.LogInformation("My Middleware - Before");
+
+    await next(context);
+
+    logger.LogInformation("My Middleware - After");
+    logger.LogInformation("Response StatusCode: {StatusCode}", context.Response.StatusCode);
 });
 
 app.UseHttpsRedirection();
