@@ -16,12 +16,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseWhen(context => context.Request.Query.ContainsKey("branch"), app =>
+app.MapWhen(context => context.Request.Query.ContainsKey("branch"), app =>
 {
     app.Use(async (context, next) =>
     {
         var logger = app.ApplicationServices.GetRequiredService<ILogger<Program>>();
-        logger.LogInformation("From UseWhen(): Branch used = {Branch}", context.Request.Query["branch"].FirstOrDefault() ?? "");
+        logger.LogInformation("From MapWhen(): Branch used = {Branch}", context.Request.Query["branch"].FirstOrDefault() ?? "");
 
         await next();
     });
