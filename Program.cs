@@ -16,59 +16,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.Map("/lottery", app =>
+app.UseWhen(context => context.Request.Query.ContainsKey("branch"), app =>
 {
-    var random = new Random();
-    var luckyNumber = random.Next(1, 6);
-
-    app.UseWhen(context => context.Request.QueryString.Value == $"?{luckyNumber}", app =>
+    app.Use(async (context, next) =>
     {
-        app.Run(async context =>
-        {
-            await context.Response.WriteAsync($"You win! You got the lucky number {luckyNumber}!");
-        });
-    });
+        var logger = app.ApplicationServices.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("From UseWhen(): Branch used = {Branch}", context.Request.Query["branch"].FirstOrDefault() ?? "");
 
-    app.UseWhen(context => string.IsNullOrWhiteSpace(context.Request.QueryString.Value), app =>
-    {
-        app.Use(async (context, next) =>
-        {
-            var number = random.Next(1, 6);
-            context.Request.Headers.TryAdd("number", number.ToString());
-
-            await next(context);
-        });
-
-        app.UseWhen(context => context.Request.Headers["number"] == luckyNumber.ToString(), app =>
-        {
-            app.Run(async context =>
-            {
-                await context.Response.WriteAsync($"You win! You got the lucky number {luckyNumber}!");
-            });
-        });
-    });
-
-    app.Run(async context =>
-    {
-        var number = "";
-
-        if (context.Request.QueryString.HasValue)
-        {
-            number = context.Request.QueryString.Value?.Replace("?", "");
-        }
-        else
-        {
-            number = context.Request.Headers["number"];
-        }
-
-        await context.Response.WriteAsync($"Your number is {number}. Try again!");
+        await next();
     });
 });
 
 app.Run(async context =>
 {
-    await context.Response.WriteAsync($"Use the /lottery URL to play. You can choose your number with the format /lottery?1.");
-
+    await context.Response.WriteAsync("Hello world!");
 });
 
 app.UseHttpsRedirection();
